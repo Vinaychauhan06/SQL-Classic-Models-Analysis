@@ -151,6 +151,4 @@ For any questions or feedback, feel free to reach out:
 - **Name**: Vinay Chauhan
 - **Email**: vc203132@gmail.com
 
----
 
-This version reflects your name and removes the license section.
