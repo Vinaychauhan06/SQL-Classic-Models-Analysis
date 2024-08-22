@@ -10,7 +10,6 @@ This project provides an in-depth analysis of the Classic Models database using 
 - [Project Structure](#project-structure)
 - [Key SQL Queries](#key-sql-queries)
 - [Technologies Used](#technologies-used)
-- [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Contact](#contact)
 
@@ -126,14 +125,6 @@ GROUP BY o.productCode, p.productName, o2.productCode, p2.productName;
 - SQL
 - MySQL or any SQL-compatible database system
 
-## Getting Started
-
-1. Clone this repository:
-    ```
-    git clone https://github.com/yourusername/SQL-Classic-Models-Analysis.git
-    ```
-2. Import the Classic Models database into your SQL environment.
-3. Execute the SQL scripts provided in the repository.
 
 ## Usage
 
