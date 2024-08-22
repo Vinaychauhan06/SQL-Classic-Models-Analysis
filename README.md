@@ -163,7 +163,3 @@ For any questions or feedback, feel free to reach out:
 
 - **Name**: Vinay Chauhan
 - **Email**: vc203132@gmail.com
-
----
-
-This version now clarifies that the dataset is provided as a script within a Word document and includes instructions on how to use it in your SQL environment.
