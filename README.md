@@ -8,6 +8,7 @@ This project provides an in-depth analysis of the Classic Models database using 
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
+- [Dataset Setup](#dataset-setup)
 - [Key SQL Queries](#key-sql-queries)
 - [Technologies Used](#technologies-used)
 - [Usage](#usage)
@@ -17,6 +18,33 @@ This project provides an in-depth analysis of the Classic Models database using 
 
 - **SQL Queries**: Contains all the SQL queries used for the analysis.
 - **Results**: Includes any output files or screenshots demonstrating the results of the analysis.
+- **Dataset Script**: The dataset is provided as a SQL script in a Word document that needs to be run in your SQL environment.
+
+## Dataset Setup
+
+To set up the Classic Models database, follow these steps:
+
+1. **Clone the Repository**:
+   - Start by cloning this repository to your local machine:
+     ```bash
+     git clone https://github.com/your-username/classic-models-sql-analysis.git
+     ```
+
+2. **Extract the Dataset Script**:
+   - The dataset for this project is provided as a SQL script within a Word document.
+   - Open the Word document located in the `/Data` directory.
+
+3. **Copy the Script**:
+   - Copy the SQL script from the Word document.
+
+4. **Run the Script in Your SQL Environment**:
+   - Open your SQL environment (e.g., MySQL Workbench, SQL Server Management Studio, etc.).
+   - Paste the copied script into a new SQL query window.
+   - Execute the script to create and populate the necessary tables (e.g., `customers`, `orders`, `orderdetails`, `products`, etc.).
+
+5. **Verify the Database**:
+   - After running the script, verify that all tables have been successfully created and populated with data.
+   - Run simple `SELECT` queries to ensure that data is present in each table.
 
 ## Key SQL Queries
 
@@ -125,7 +153,6 @@ GROUP BY o.productCode, p.productName, o2.productCode, p2.productName;
 - SQL
 - MySQL or any SQL-compatible database system
 
-
 ## Usage
 
 Execute the queries provided in the `SQL Queries` section to perform the analysis and gain insights from the Classic Models database.
@@ -137,4 +164,6 @@ For any questions or feedback, feel free to reach out:
 - **Name**: Vinay Chauhan
 - **Email**: vc203132@gmail.com
 
+---
 
+This version now clarifies that the dataset is provided as a script within a Word document and includes instructions on how to use it in your SQL environment.
