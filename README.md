@@ -1,8 +1,3 @@
-# SQL-Classic-Models-Analysis
-Here’s the updated README for your project:
-
----
-
 # SQL Analysis - Classic Models
 
 ## Overview
