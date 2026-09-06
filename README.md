@@ -1,165 +1,276 @@
-# SQL Analysis - Classic Models
+# 🏛️ SQL Analysis & Advanced Revenue Intelligence (ClassicModels DB)
+### *Enterprise SQL Analytics, Relational Modeling, Window Functions & CTEs on the ClassicModels Database*
 
-## Overview
+[![SQL](https://img.shields.io/badge/Language-SQL-blue.svg?logo=postgresql&logoColor=white)](https://en.wikipedia.org/wiki/SQL)
+[![MySQL](https://img.shields.io/badge/RDBMS-MySQL-00758F?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Technique](https://img.shields.io/badge/Technique-CTEs%20%26%20Window%20Functions-orange.svg)]()
+[![Analytics](https://img.shields.io/badge/Domain-Sales%20%26%20Revenue%20Intelligence-success.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-This project provides an in-depth analysis of the Classic Models database using SQL. The analysis focuses on various business metrics such as average order amounts, total sales, best-selling products, sales performance of sales representatives, customer segmentation, and more. This repository demonstrates my ability to write and execute SQL queries to derive meaningful insights from data.
+---
 
-## Table of Contents
+## 📌 Project Overview
 
-- [Overview](#overview)
-- [Project Structure](#project-structure)
-- [Dataset Setup](#dataset-setup)
-- [Key SQL Queries](#key-sql-queries)
-- [Technologies Used](#technologies-used)
-- [Usage](#usage)
-- [Contact](#contact)
+This repository demonstrates enterprise-grade relational database analysis using **MySQL** on the classic multi-table **ClassicModels enterprise database**. The project covers the full spectrum of SQL data analytics—ranging from multi-table joins, aggregations, and business KPI derivation, to advanced **Common Table Expressions (CTEs)**, partitioned **Window Functions (`RANK()`, `DENSE_RANK()`, `ROW_NUMBER()`, `LAG()`)**, and **running totals**.
 
-## Project Structure
+The objective is to translate relational transactions into commercial business intelligence: tracking customer order velocity, gross margins, shipping fulfillment SLAs, sales representative quota attainment, and month-over-month growth.
 
-- **SQL Queries**: Contains all the SQL queries used for the analysis.
-- **Results**: Includes any output files or screenshots demonstrating the results of the analysis.
-- **Dataset Script**: The dataset is provided as a SQL script in a Word document that needs to be run in your SQL environment.
+---
 
-## Dataset Setup
+## 🗄️ Database Architecture & Entity Relationships
 
-To set up the Classic Models database, follow these steps:
+The **ClassicModels** relational schema models an international scale-model car and vehicle retailer across 8 interrelated tables:
 
-1. **Clone the Repository**:
-   - Start by cloning this repository to your local machine:
-     ```bash
-     git clone https://github.com/your-username/classic-models-sql-analysis.git
-     ```
+```mermaid
+erDiagram
+    CUSTOMERS ||--o{ ORDERS : places
+    ORDERS ||--|{ ORDERDETAILS : contains
+    PRODUCTS ||--|{ ORDERDETAILS : "ordered in"
+    PRODUCTLINES ||--|{ PRODUCTS : categorizes
+    CUSTOMERS ||--o{ PAYMENTS : pays
+    EMPLOYEES ||--o{ CUSTOMERS : "assigned to"
+    EMPLOYEES ||--o{ EMPLOYEES : "reports to"
+    OFFICES ||--|{ EMPLOYEES : employs
 
-2. **Extract the Dataset Script**:
-   - The dataset for this project is provided as a SQL script within a Word document.
-   - Open the Word document located in the `/Data` directory.
+    CUSTOMERS {
+        int customerNumber PK
+        string customerName
+        string contactLastName
+        string contactFirstName
+        string phone
+        string city
+        string country
+        int salesRepEmployeeNumber FK
+        float creditLimit
+    }
 
-3. **Copy the Script**:
-   - Copy the SQL script from the Word document.
+    ORDERS {
+        int orderNumber PK
+        date orderDate
+        date requiredDate
+        date shippedDate
+        string status
+        int customerNumber FK
+    }
 
-4. **Run the Script in Your SQL Environment**:
-   - Open your SQL environment (e.g., MySQL Workbench, SQL Server Management Studio, etc.).
-   - Paste the copied script into a new SQL query window.
-   - Execute the script to create and populate the necessary tables (e.g., `customers`, `orders`, `orderdetails`, `products`, etc.).
+    ORDERDETAILS {
+        int orderNumber PK, FK
+        string productCode PK, FK
+        int quantityOrdered
+        float priceEach
+        int orderLineNumber
+    }
 
-5. **Verify the Database**:
-   - After running the script, verify that all tables have been successfully created and populated with data.
-   - Run simple `SELECT` queries to ensure that data is present in each table.
+    PRODUCTS {
+        string productCode PK
+        string productName
+        string productLine FK
+        string productScale
+        int quantityInStock
+        float buyPrice
+        float MSRP
+    }
 
-## Key SQL Queries
-
-### 1. Calculate the Average Order Amount for Each Country
-```sql
-SELECT country, AVG(quantityOrdered * priceEach) AS average_order_amount 
-FROM classicmodels.customers c
-INNER JOIN classicmodels.orders o ON c.customerNumber = o.customerNumber
-INNER JOIN classicmodels.orderdetails od ON od.orderNumber = o.orderNumber
-GROUP BY country
-ORDER BY average_order_amount DESC;
+    EMPLOYEES {
+        int employeeNumber PK
+        string lastName
+        string firstName
+        string extension
+        string email
+        string officeCode FK
+        int reportsTo FK
+        string jobTitle
+    }
 ```
-**Explanation**: This query calculates the average order amount for each country by joining the customers, orders, and order details tables.
 
-### 2. Calculate the Total Sales Amount for Each Product Line
-```sql
-SELECT productLine, SUM(quantityOrdered * priceEach) AS total_sales 
-FROM classicmodels.products c
-INNER JOIN classicmodels.orderdetails o ON c.productCode = o.productCode
-GROUP BY productLine;
+---
+
+## 📂 Repository Structure
+
 ```
-**Explanation**: This query sums the total sales amount for each product line, providing insights into which product lines generate the most revenue.
-
-### 3. List the Top 10 Best-Selling Products Based on Total Quantity Sold
-```sql
-SELECT productName, SUM(quantityOrdered) AS total_quantity_sold 
-FROM classicmodels.products c
-INNER JOIN classicmodels.orderdetails o ON c.productCode = o.productCode
-GROUP BY productName
-ORDER BY total_quantity_sold DESC
-LIMIT 10;
+├── Advanced_CTE_Window_Functions.sql   # Advanced CTEs, partitioned window functions & MoM growth
+├── SQL+Analysis+Classic+Models sql.sql # Core operational analytics, profit margins & joins
+├── Script for Classic Models.docx      # DDL and schema creation script for database setup
+└── README.md                           # Comprehensive documentation & query catalog
 ```
-**Explanation**: This query identifies the top 10 best-selling products by summing the total quantities sold.
 
-### 4. Evaluate the Sales Performance of Each Sales Representative
+---
+
+## 🧠 Query Catalog & Analytical Breakdown
+
+### Part 1: Advanced CTEs & Window Functions (`Advanced_CTE_Window_Functions.sql`)
+
+#### 1. Top 3 Best-Selling Products per Product Line (`RANK()` + CTE)
+*Uses a Common Table Expression to aggregate product revenue, then partitions `RANK()` by product line to isolate the top 3 commercial drivers without hardcoded subquery limits.*
 ```sql
-SELECT e.firstName, e.lastName, SUM(quantityOrdered * priceEach) AS total_sales
-FROM classicmodels.customers c
-INNER JOIN classicmodels.employees e ON c.salesRepEmployeeNumber = e.employeeNumber
-LEFT JOIN classicmodels.orders o ON c.customerNumber = o.customerNumber
-LEFT JOIN classicmodels.orderdetails od ON o.orderNumber = od.orderNumber
-GROUP BY e.firstName, e.lastName;
+WITH product_sales AS (
+    SELECT
+        p.productLine,
+        p.productName,
+        SUM(od.quantityOrdered) AS total_quantity_sold,
+        SUM(od.quantityOrdered * od.priceEach) AS total_revenue
+    FROM classicmodels.orderdetails od
+    INNER JOIN classicmodels.products p
+        ON od.productCode = p.productCode
+    GROUP BY p.productLine, p.productName
+),
+ranked_products AS (
+    SELECT
+        productLine,
+        productName,
+        total_quantity_sold,
+        total_revenue,
+        RANK() OVER (
+            PARTITION BY productLine
+            ORDER BY total_revenue DESC
+        ) AS revenue_rank
+    FROM product_sales
+)
+SELECT *
+FROM ranked_products
+WHERE revenue_rank <= 3
+ORDER BY productLine, revenue_rank;
 ```
-**Explanation**: This query evaluates the sales performance of each sales representative by calculating the total sales associated with each.
 
-### 5. Calculate the Average Number of Orders Placed by Each Customer
+---
+
+#### 2. Month-over-Month (MoM) Sales Growth (`LAG()` Function)
+*Extracts monthly transaction totals and uses the `LAG()` analytical window function to compare current month revenue against the preceding period to compute percentage growth.*
 ```sql
-SELECT COUNT(o.orderNumber)/COUNT(DISTINCT c.customerNumber) 
-FROM classicmodels.customers c
-LEFT JOIN classicmodels.orders o ON c.customerNumber = o.customerNumber;
+WITH monthly_sales AS (
+    SELECT
+        DATE_FORMAT(o.orderDate, '%Y-%m') AS order_month,
+        SUM(od.quantityOrdered * od.priceEach) AS monthly_revenue
+    FROM classicmodels.orders o
+    INNER JOIN classicmodels.orderdetails od
+        ON o.orderNumber = od.orderNumber
+    GROUP BY DATE_FORMAT(o.orderDate, '%Y-%m')
+)
+SELECT
+    order_month,
+    monthly_revenue,
+    LAG(monthly_revenue) OVER (ORDER BY order_month) AS prev_month_revenue,
+    ROUND(
+        (monthly_revenue - LAG(monthly_revenue) OVER (ORDER BY order_month))
+        / LAG(monthly_revenue) OVER (ORDER BY order_month) * 100, 2
+    ) AS mom_growth_pct
+FROM monthly_sales
+ORDER BY order_month;
 ```
-**Explanation**: This query calculates the average number of orders placed by each customer, providing insights into customer engagement.
 
-### 6. Calculate the Percentage of Orders That Were Shipped on Time
+---
+
+#### 3. Cumulative Running Total Revenue (`SUM() OVER`)
+*Maintains a continuous running total of historical revenue over time to track business sales momentum and cash flow.*
 ```sql
-SELECT SUM(CASE WHEN shippedDate <= requiredDate THEN 1 ELSE 0 END)/COUNT(orderNumber) * 100 AS on_time  
-FROM classicmodels.orders;
+WITH daily_sales AS (
+    SELECT
+        o.orderDate,
+        SUM(od.quantityOrdered * od.priceEach) AS daily_revenue
+    FROM classicmodels.orders o
+    INNER JOIN classicmodels.orderdetails od
+        ON o.orderNumber = od.orderNumber
+    GROUP BY o.orderDate
+)
+SELECT
+    orderDate,
+    daily_revenue,
+    SUM(daily_revenue) OVER (ORDER BY orderDate) AS running_total_revenue
+FROM daily_sales
+ORDER BY orderDate;
 ```
-**Explanation**: This query calculates the percentage of orders that were shipped on time by comparing the shipped date with the required date.
 
-### 7. Calculate the Profit Margin for Each Product
+---
+
+#### 4. Top Customer Per Sales Representative (`ROW_NUMBER()` + CTE)
+*Determines the single highest-value account managed by each sales representative using `ROW_NUMBER() OVER (PARTITION BY employeeNumber ORDER BY customer_revenue DESC)`.*
 ```sql
-SELECT p.productName, 
-       SUM((o.quantityOrdered * p.buyPrice) - (o.priceEach * o.quantityOrdered)) AS profit_margin
-FROM classicmodels.orderdetails o
-INNER JOIN classicmodels.products p ON o.productCode = p.productCode
-GROUP BY p.productName;
+WITH rep_customer_sales AS (
+    SELECT
+        e.employeeNumber,
+        e.firstName,
+        e.lastName,
+        c.customerNumber,
+        c.customerName,
+        SUM(od.quantityOrdered * od.priceEach) AS customer_revenue
+    FROM classicmodels.employees e
+    INNER JOIN classicmodels.customers c
+        ON e.employeeNumber = c.salesRepEmployeeNumber
+    INNER JOIN classicmodels.orders o
+        ON c.customerNumber = o.customerNumber
+    INNER JOIN classicmodels.orderdetails od
+        ON o.orderNumber = od.orderNumber
+    GROUP BY e.employeeNumber, e.firstName, e.lastName, c.customerNumber, c.customerName
+),
+ranked_customers AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY employeeNumber
+            ORDER BY customer_revenue DESC
+        ) AS rn
+    FROM rep_customer_sales
+)
+SELECT firstName, lastName, customerName, customer_revenue
+FROM ranked_customers
+WHERE rn = 1
+ORDER BY customer_revenue DESC;
 ```
-**Explanation**: This query calculates the profit margin for each product by subtracting the cost of goods sold (COGS) from the sales revenue.
 
-### 8. Segment Customers by Value
-```sql
-SELECT * 
-FROM classicmodels.customers c
-LEFT JOIN (
-    SELECT *,
-    CASE 
-        WHEN net_sale > 100000 THEN 'HIGH VALUE'
-        WHEN net_sale BETWEEN 80000 AND 100000 THEN 'MEDIUM VALUE'
-        WHEN net_sale < 50000 THEN 'LOW VALUE'
-        ELSE 'OTHERS' 
-    END AS SEGMENT
-    FROM (
-        SELECT customerNumber, SUM(quantityOrdered * priceEach) AS net_sale 
-        FROM classicmodels.orders o
-        INNER JOIN classicmodels.orderdetails od ON o.orderNumber = od.orderNumber
-        GROUP BY customerNumber
-    ) t1
-) t2 ON c.customerNumber = t2.customerNumber;
-```
-**Explanation**: This query segments customers into different value categories based on their total sales.
+---
 
-### 9. Identify Frequently Co-Purchased Products
-```sql
-SELECT o.productCode, p.productName, o2.productCode, p2.productName, COUNT(*) 
-FROM classicmodels.orderdetails o
-INNER JOIN classicmodels.orderdetails o2 ON o.orderNumber = o2.orderNumber AND o.productCode <> o2.productCode
-INNER JOIN classicmodels.products p ON o.productCode = p.productCode
-INNER JOIN classicmodels.products p2 ON o2.productCode = p2.productCode
-GROUP BY o.productCode, p.productName, o2.productCode, p2.productName;
-```
-**Explanation**: This query identifies products that are frequently co-purchased to understand cross-selling opportunities.
+### Part 2: Core Operational & Financial Analytics (`SQL+Analysis+Classic+Models sql.sql`)
 
-## Technologies Used
+| Business Question | Technical Implementation | Analytical Value |
+| :--- | :--- | :--- |
+| **Average Basket by Country** | Multi-table `INNER JOIN` + `AVG()` grouped by Country | Identifies high-purchasing international territories |
+| **Sales by Product Line** | Aggregation on `orderdetails` $\times$ `products` | Pinpoints highest-grossing product lines (e.g., Classic Cars) |
+| **Top 10 Volume Products** | `SUM(quantityOrdered)` with `LIMIT 10` | Identifies inventory turn velocity and stock requirements |
+| **Sales Rep Attainment** | `LEFT JOIN` on Employees $\to$ Customers $\to$ Orders | Captures representative contribution including inactive reps |
+| **On-Time Delivery Rate** | `SUM(CASE WHEN shippedDate <= requiredDate THEN 1 ELSE 0 END) / COUNT(*)` | Quantifies supply chain SLA fulfillment rate |
+| **Product Profit Margins** | `SUM(quantityOrdered * (priceEach - buyPrice))` | Calculates Gross Margin per SKU and revenue contribution |
+| **Customer Segmentation** | CTE + `CASE WHEN` (`High >$100k`, `Medium $80k-$100k`, `Low <$50k`) | Classifies accounts for targeted retention and marketing |
+| **Market Basket Co-Purchases**| Self-join on `orderdetails` (`od1.productCode <> od2.productCode`) | Uncovers cross-selling and bundling combinations |
 
-- SQL
-- MySQL or any SQL-compatible database system
+---
 
-## Usage
+## 🛠️ Key SQL Skills Demonstrated
 
-Execute the queries provided in the `SQL Queries` section to perform the analysis and gain insights from the Classic Models database.
+* **Window Functions:** `RANK()`, `DENSE_RANK()`, `ROW_NUMBER()`, `LAG()`, `LEAD()`, cumulative `SUM() OVER ()`
+* **Query Structuring:** Multi-level Common Table Expressions (CTEs), Subqueries, and temporary table optimization
+* **Relational Joins:** `INNER JOIN`, `LEFT JOIN`, and Self-Joins (`orderdetails` $\times$ `orderdetails`)
+* **Conditional Logic:** Advanced `CASE WHEN` constructs for segmentation, KPI flagging, and on-time compliance
+* **Date & Time Arithmetic:** `DATE_FORMAT()`, interval comparisons (`shippedDate <= requiredDate`)
 
-## Contact
+---
 
-For any questions or feedback, feel free to reach out:
+## 🚀 How to Run
 
-- **Name**: Vinay Chauhan
-- **Email**: vc203132@gmail.com
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/Vinaychauhan06/SQL-Classic-Models-Analysis.git
+   cd SQL-Classic-Models-Analysis
+   ```
+
+2. **Set up the ClassicModels Database:**
+   - Open MySQL Workbench, DBeaver, or terminal `mysql`.
+   - Run the schema creation script from `Script for Classic Models.docx` or load the official MySQL sample ClassicModels dataset.
+
+3. **Execute the Query Scripts:**
+   - Run `SQL+Analysis+Classic+Models sql.sql` for operational and financial queries.
+   - Run `Advanced_CTE_Window_Functions.sql` for CTEs and Window Functions.
+
+---
+
+## 👤 Author
+
+**Vinay Chauhan**  
+*Data Analyst & Business Intelligence Specialist*  
+- **Email:** [Vc203132@gmail.com](mailto:Vc203132@gmail.com)  
+- **GitHub:** [@Vinaychauhan06](https://github.com/Vinaychauhan06)  
+- **LinkedIn:** [Vinay Chauhan](https://www.linkedin.com/)
+
+---
+
+## 📜 License
+This project is open-source and available under the [MIT License](LICENSE).
